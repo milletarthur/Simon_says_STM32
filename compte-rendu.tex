@@ -1,0 +1,81 @@
+\documentclass[10pt,a4,french]{article}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[margin=3cm]{geometry}
+
+\title{Compte-Rendu TP SPC}
+\author{Arthur MILLET\\ Rémi GAULMIN}
+\date{19 Mars 2024}
+
+\begin{document}
+
+\lstset{language=C, frame=single}
+
+\maketitle
+
+\section{Prise en main de la carte}
+
+\subsection{Les GPIO}
+
+\begin{itemize}
+	\item Programme qui allume la LED lorsque le bouton est enfoncé :
+		\begin{lstlisting}
+int main() {
+	init_PB();
+	init_LD2();
+	while(1){
+		if((GPIOC.IDR & (0x1 <<13))==0)
+			GPIOA.ODR |= (0x1 << 5);
+		else
+			GPIOA.ODR &= (~(0x1 <<5));
+	}
+	return 0;
+}
+		\end{lstlisting}
+	\item Programme qui fait clignoter la LED toutes les 500ms :
+		\begin{lstlisting}
+int main() {
+	init_PB();
+	init_LD2();
+	while(1){
+		GPIOA.ODR &= (~(0x1 << 5));
+		tempo_500ms();
+		GPIOA.ODR |= (0x1 <<5);
+		tempo_500ms();
+	}
+	return 0;
+}
+		\end{lstlisting}
+	\item Programme qui fait clignoter la LED avec une période de 2s quand le bouton est relâché, et l'allume sur l'appui du bouton :
+		\begin{lstlisting}
+void tempo_2s() {
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+}
+
+int main() {
+	init_PB();
+	init_LD2();
+	while(1) {
+		if((GPIOC.IDR & (0x1 << 13)) == 0)
+			GPIOA.ODR |= (0x1 <<5);
+		else {
+			GPIOA.ODR |= (0x1 <<5);
+			tempo_2s();
+			GPIOA.ODR &= (~(0x1 << 5));
+			tempo_2s();
+		}
+	}
+}
+		\end{lstlisting}
+		Lorsqu'on appuie sur le bouton alors que la LED est éteinte, le programme va d'abord attendre que les deux secondes se soient écoulées (fonction \texttt{tempo\_2s}) avant de reboucler et de tester l'état du bouton.
+
+\end{itemize}
+
+\subsection{Mise en oeuvre de l'USART}
+
+
+
+\end{document}

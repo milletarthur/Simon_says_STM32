@@ -19,7 +19,9 @@ void init_LD2(){
 }
 
 void init_PB(){
-	/* GPIOC.MODER = ... */
+	enable_GPIOC();
+	GPIOC.MODER &= ~(0x3<<26);
+	GPIOC.PUPDR &= ~(0x3<<26);
 }
 
 void tempo_500ms(){
@@ -91,20 +93,40 @@ int _async_puts(const char* s) {
 	/* À compléter */
 }
 
+void tempo_2s() {
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+}
+
 int main() {
   
-	printf("\e[2J\e[1;1H\r\n");
-	printf("\e[01;32m*** Welcome to Nucleo F446 ! ***\e[00m\r\n");
+	//printf("\e[2J\e[1;1H\r\n");
+	//printf("\e[01;32m*** Welcome to Nucleo F446 ! ***\e[00m\r\n");
+        //
+	//printf("\e[01;31m\t%08lx-%08lx-%08lx\e[00m\r\n",
+	//       U_ID[0],U_ID[1],U_ID[2]);
+	//printf("SYSCLK = %9lu Hz\r\n",get_SYSCLK());
+	//printf("AHBCLK = %9lu Hz\r\n",get_AHBCLK());
+	//printf("APB1CLK= %9lu Hz\r\n",get_APB1CLK());
+	//printf("APB2CLK= %9lu Hz\r\n",get_APB2CLK());
+	//printf("\r\n");
+	
+	init_PB();
+	init_LD2();
+	while(1){
+		if((GPIOC.IDR & (0x1 << 13)) == 0)
+			GPIOA.ODR |= (0x1 <<5);
+		else {
+			GPIOA.ODR |= (0x1 <<5);
+			tempo_2s();
+			GPIOA.ODR &= (~(0x1 << 5));
+			tempo_2s();
+		}
+	}
 
-	printf("\e[01;31m\t%08lx-%08lx-%08lx\e[00m\r\n",
-	       U_ID[0],U_ID[1],U_ID[2]);
-	printf("SYSCLK = %9lu Hz\r\n",get_SYSCLK());
-	printf("AHBCLK = %9lu Hz\r\n",get_AHBCLK());
-	printf("APB1CLK= %9lu Hz\r\n",get_APB1CLK());
-	printf("APB2CLK= %9lu Hz\r\n",get_APB2CLK());
-	printf("\r\n");
 
-	while (1);
 	return 0;
 }
 

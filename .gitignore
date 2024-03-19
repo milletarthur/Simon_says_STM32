@@ -1,2 +1,7 @@
 bin
 obj
+*.log
+*.aux
+*.pdf
+*.swp
+src/*.swp
