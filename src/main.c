@@ -54,7 +54,8 @@ void _puts(const char *c){
 }
 
 char _getc(){
-	/* À compléter */
+	while( (USART2.SR & (0x1 << 5)) == 0);
+	return USART2.DR;
 }
 
 /* Initialisation du timer système (systick) */
@@ -101,31 +102,14 @@ void tempo_2s() {
 }
 
 int main() {
-  
-	//printf("\e[2J\e[1;1H\r\n");
-	//printf("\e[01;32m*** Welcome to Nucleo F446 ! ***\e[00m\r\n");
-        //
-	//printf("\e[01;31m\t%08lx-%08lx-%08lx\e[00m\r\n",
-	//       U_ID[0],U_ID[1],U_ID[2]);
-	//printf("SYSCLK = %9lu Hz\r\n",get_SYSCLK());
-	//printf("AHBCLK = %9lu Hz\r\n",get_AHBCLK());
-	//printf("APB1CLK= %9lu Hz\r\n",get_APB1CLK());
-	//printf("APB2CLK= %9lu Hz\r\n",get_APB2CLK());
-	//printf("\r\n");
-	
-	init_PB();
-	init_LD2();
-	while(1){
-		if((GPIOC.IDR & (0x1 << 13)) == 0)
-			GPIOA.ODR |= (0x1 <<5);
-		else {
-			GPIOA.ODR |= (0x1 <<5);
-			tempo_2s();
-			GPIOA.ODR &= (~(0x1 << 5));
-			tempo_2s();
-		}
-	}
 
+	while(1) {
+		char c = _getc();
+		if (c=='\r')
+			printf("\r\n");
+		else
+			printf("%c",c);
+	}
 
 	return 0;
 }
