@@ -73,10 +73,11 @@ void __attribute__((interrupt)) SysTick_Handler(){
 	 * pour plus de détails.
 	 */
 	/* ... */
-        GPIOA.ODR &= (~(0x1 << 5));
-        tempo_500ms();
-        GPIOA.ODR |= (0x1 <<5);
-        tempo_500ms();
+	if((GPIOA.IDR & (0x1 << 5)) == 0)
+		GPIOA.ODR |= (0x1 << 5);
+	else
+		GPIOA.ODR &= (~(0x1 <<5));
+	tempo_500ms();
 }
 
 /* Fonction non bloquante envoyant une chaîne par l'UART */
@@ -107,9 +108,8 @@ void tempo_2s() {
 }
 
 int main() {
-	init_PB();
         init_LD2();
-	systick_init(500);
+	systick_init(1000);
 	while(1) {
 	
 	}
