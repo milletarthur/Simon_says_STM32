@@ -72,10 +72,32 @@ int main() {
 		\end{lstlisting}
 		Lorsqu'on appuie sur le bouton alors que la LED est éteinte, le programme va d'abord attendre que les deux secondes se soient écoulées (fonction \texttt{tempo\_2s}) avant de reboucler et de tester l'état du bouton.
 
-\end{itemize}
-
 \subsection{Mise en oeuvre de l'USART}
 
+	\item Programme qui qui réalise l'affichage du caractère entré au clavier :
+		\begin{lstlisting}
+char _getc(){
+	while( (USART2.SR & (0x1 << 5)) == 0);
+	return USART2.DR;
+}
 
+int main() {
+	while(1) {
+		char c = _getc();
+		if (c =='\r')
+			printf("\r\n");
+		else
+			printf("%c",c);
+	}
+	return 0;
+}
+		\end{lstlisting}
+
+	\item Programme qui récupère une chaîne depuis la ligne série et l'affiche deux fois :
+		\begin{lstlisting}
+
+		\end{lstlisting}
+
+\end{itemize}
 
 \end{document}
