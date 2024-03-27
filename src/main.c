@@ -61,9 +61,6 @@ char _getc(){
 /* Initialisation du timer système (systick) */
 void systick_init(uint32_t freq){
 	uint32_t p = get_SYSCLK()/freq;
-	uint32_t compteur = 0;
-	while(compteur % 500 != 0)
-		compteur++;
 	SysTick.LOAD = (p-1) & 0x00FFFFFF;
 	SysTick.VAL = 0;
 	SysTick.CTRL |= 7;
@@ -76,6 +73,10 @@ void __attribute__((interrupt)) SysTick_Handler(){
 	 * pour plus de détails.
 	 */
 	/* ... */
+        GPIOA.ODR &= (~(0x1 << 5));
+        tempo_500ms();
+        GPIOA.ODR |= (0x1 <<5);
+        tempo_500ms();
 }
 
 /* Fonction non bloquante envoyant une chaîne par l'UART */
@@ -106,20 +107,11 @@ void tempo_2s() {
 }
 
 int main() {
-	char s[256];
-	uint32_t i = 0;
+	init_PB();
+        init_LD2();
+	systick_init(500);
 	while(1) {
-		char c = _getc();
-		s[i] = c;
-		i = (i+1)%256;
-		if (c=='\r'){
-			printf("\r\n");
-			s[i]='\0';
-			i=0;
-			_puts(s);
-		}
-		else
-			printf("%c",c);
+	
 	}
 	return 0;
 }
