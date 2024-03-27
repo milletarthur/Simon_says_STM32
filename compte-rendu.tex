@@ -95,9 +95,28 @@ int main() {
 
 	\item Programme qui récupère une chaîne depuis la ligne série et l'affiche deux fois :
 		\begin{lstlisting}
-
+int main() {
+	char s[256];
+	uint32_t i = 0;
+	while(1) {
+		char c = _getc();
+		s[i] = c;
+		i = (i+1)%256;
+		if (c=='\r'){
+			printf("\r\n");
+			s[i]='\0';
+			i=0;
+			_puts(s);
+		}
+		else
+			printf("%c",c);
+	}
+	return 0;
+}
 		\end{lstlisting}
 
 \end{itemize}
+
+\subsection{Le Systick, l'USART et les interruptions}
 
 \end{document}
