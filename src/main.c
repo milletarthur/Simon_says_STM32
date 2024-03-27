@@ -61,6 +61,9 @@ char _getc(){
 /* Initialisation du timer système (systick) */
 void systick_init(uint32_t freq){
 	uint32_t p = get_SYSCLK()/freq;
+	uint32_t compteur = 0;
+	while(compteur % 500 != 0)
+		compteur++;
 	SysTick.LOAD = (p-1) & 0x00FFFFFF;
 	SysTick.VAL = 0;
 	SysTick.CTRL |= 7;
@@ -92,6 +95,7 @@ int _async_puts(const char* s) {
 	 * une nouvelle chaîne peut être envoyée.
 	 */
 	/* À compléter */
+	return 0;
 }
 
 void tempo_2s() {
@@ -102,15 +106,20 @@ void tempo_2s() {
 }
 
 int main() {
-
+	char s[256];
+	uint32_t i = 0;
 	while(1) {
 		char c = _getc();
-		if (c=='\r')
+		s[i] = c;
+		i = (i+1)%256;
+		if (c=='\r'){
 			printf("\r\n");
+			i=0;
+			_puts(s);
+		}
 		else
 			printf("%c",c);
 	}
-
 	return 0;
 }
 
