@@ -114,7 +114,8 @@ int main() {
 		i = (i+1)%256;
 		if (c=='\r'){
 			printf("\r\n");
-			i=0;
+			s[i]='\0';
+			i=0;	
 			_puts(s);
 		}
 		else
