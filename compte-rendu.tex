@@ -119,4 +119,24 @@ int main() {
 
 \subsection{Le Systick, l'USART et les interruptions}
 
+\begin{itemize}
+	\item Programme qui fait clignoter la LED toutes les 500ms, en utilisant les interruptions du Systick :
+		\begin{lstlisting}
+void __attribute__((interrupt)) SysTick_Handler(){
+	if((GPIOA.IDR & (0x1 << 5)) == 0) // Si la LED est éteinte,
+		GPIOA.ODR |= (0x1 << 5); // On l'allume
+	else
+		GPIOA.ODR &= (~(0x1 <<5)); // On l'éteint
+	tempo_500ms();
+}
+
+int main() {
+        init_LD2();
+	systick_init(1000);
+	while(1) {
+	
+	}
+	return 0;
+}
+
 \end{document}
