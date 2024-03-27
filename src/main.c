@@ -7,6 +7,8 @@
 #include "sys/clock.h"
 
 static volatile char c=0;
+static volatile uint32_t tempo = 1000;
+static volatile uint32_t compteur = 0;
 
 void init_LD2(){
 	/* on positionne ce qu'il faut dans les différents
@@ -66,6 +68,8 @@ void systick_init(uint32_t freq){
 	SysTick.CTRL |= 7;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 void __attribute__((interrupt)) SysTick_Handler(){
 	/* Le fait de définir cette fonction suffit pour
 	 * qu'elle soit utilisée comme traitant,
@@ -73,12 +77,16 @@ void __attribute__((interrupt)) SysTick_Handler(){
 	 * pour plus de détails.
 	 */
 	/* ... */
-	if((GPIOA.IDR & (0x1 << 5)) == 0)
-		GPIOA.ODR |= (0x1 << 5);
-	else
-		GPIOA.ODR &= (~(0x1 <<5));
-	tempo_500ms();
+	compteur ++;
+	if (compteur >= tempo) {
+		if((GPIOA.IDR & (0x1 << 5)) == 0)
+			GPIOA.ODR |= (0x1 << 5);
+		else
+			GPIOA.ODR &= (~(0x1 <<5));
+		compteur = 0;
+	}
 }
+#pragma GCC diagnostic pop
 
 /* Fonction non bloquante envoyant une chaîne par l'UART */
 int _async_puts(const char* s) {
@@ -108,10 +116,14 @@ void tempo_2s() {
 }
 
 int main() {
-        init_LD2();
+	init_LD2();
+	init_PB();
 	systick_init(1000);
 	while(1) {
-	
+		if ((GPIOC.IDR & (0x1 << 13)) == 0)
+			tempo--;
+		if (tempo <= 0)
+			tempo = 500;
 	}
 	return 0;
 }

@@ -123,10 +123,10 @@ int main() {
 	\item Programme qui fait clignoter la LED toutes les 500ms, en utilisant les interruptions du Systick :
 		\begin{lstlisting}
 void __attribute__((interrupt)) SysTick_Handler(){
-	if((GPIOA.IDR & (0x1 << 5)) == 0) // Si la LED est éteinte,
+	if((GPIOA.IDR & (0x1 << 5)) == 0) // Si la LED est eteinte,
 		GPIOA.ODR |= (0x1 << 5); // On l'allume
 	else
-		GPIOA.ODR &= (~(0x1 <<5)); // On l'éteint
+		GPIOA.ODR &= (~(0x1 <<5)); // On l'eteint
 	tempo_500ms();
 }
 
@@ -138,5 +138,37 @@ int main() {
 	}
 	return 0;
 }
+		\end{lstlisting}
+
+	\item Programme qui augmente la fréquence de clignotement en appuyant sur le bouton poussoir :
+		\begin{lstlisting}
+static volatile uint32_t tempo = 1000;
+static volatile uint32_t compteur = 0;
+
+void __attribute__((interrupt)) SysTick_Handler(){
+	compteur ++;
+	if (compteur >= tempo) {
+		if((GPIOA.IDR & (0x1 << 5)) == 0)
+			GPIOA.ODR |= (0x1 << 5);
+		else
+			GPIOA.ODR &= (~(0x1 <<5));
+		compteur = 0;
+	}
+}
+
+int main() {
+	init_LD2();
+	init_PB();
+	systick_init(1000);
+	while(1) {
+		if ((GPIOC.IDR & (0x1 << 13)) == 0)
+			tempo--;
+		if (tempo <= 0)
+			tempo = 500;
+	}
+	return 0;
+}
+		\end{lstlisting}
+\end{itemize}
 
 \end{document}
