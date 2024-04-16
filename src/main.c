@@ -1,7 +1,24 @@
 #include "sys/devices.h"
-void init_systick() {
-	//TODO
+#include "sys/init.h"
+#include "sys/clock.h"
+#include "sys/cm4.h"
+#include <stdint.h>
+
+static volatile uint32_t temps_total = 0;
+
+void systick_init(uint32_t freq) {
+	uint32_t p = get_SYSCLK()/freq;
+	SysTick.LOAD = (p-1) & 0x00FFFFFF;
+	SysTick.VAL = 0;
+	SysTick.CTRL |= 7;
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+void SysTick_Handler(){
+	temps_total+=300;
+}
+#pragma GCC diagnostic pop
 
 void init_button() {
 	//TODO
@@ -29,8 +46,9 @@ void initialisation() {
 	enable_GPIOA();
 	enable_GPIOB();
 	enable_GPIOC();
-	init_systick();
 	init_button();
+
+	systick_init(300);
 
 	// LED red = PA0
 	init_LED(&GPIOA,0);
@@ -46,6 +64,7 @@ void initialisation() {
 
 int main() {
 	initialisation();
+	systick_init(300);
 	LED_on(&GPIOA,0);
 	LED_on(&GPIOA,1);
 	LED_on(&GPIOB,10);
