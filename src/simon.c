@@ -1,23 +1,17 @@
-#include: <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include "sys/cm4.h"
 #include "sys/devices.h"
 #include "sys/init.h"
 #include "sys/clock.h"
 
+#include "init.c"
+
 uint32_t temps_total = 0;
 char buzzer_rouge;
 char buzzer_jaune;
 char buzzer_vert;
 char buzzer_bleu;
-
-void tempo_500ms(){
-	tempo_100ms();
-	tempo_100ms();
-	tempo_100ms();
-	tempo_100ms();
-	tempo_100ms();
-}
 
 void tempo_100ms(){
         volatile uint32_t duree;
@@ -28,7 +22,16 @@ void tempo_100ms(){
 
 }
 
+void tempo_500ms(){
+	tempo_100ms();
+	tempo_100ms();
+	tempo_100ms();
+	tempo_100ms();
+	tempo_100ms();
+}
+
 void allumer_led(char led){
+	/* TODO
 	switch (led & 0x3){
 		case 0x0:
 			allumer led rouge;
@@ -51,7 +54,9 @@ void allumer_led(char led){
 			attendre 500ms;
 			éteindre led bleu et le buzzer;
 		default:
+			break;
 	}
+	*/
 }
 
 void generate_sequence(char* sequence, char counter, char index){
@@ -61,13 +66,18 @@ void generate_sequence(char* sequence, char counter, char index){
 	switch (index){
 		case 0:
 			sequence[counter] = rand;
+			break;
 		case 1:
 			sequence[counter] |= (rand & 0x3) << 2;
+			break;
 		case 2:
 			sequence[counter] |= (rand & 0x3) << 4;
+			break;
 		case 3:
 			sequence[counter] |= (rand & 0x3) << 6;
+			break;
 		default:
+			break;
 	}
 }
 
@@ -89,6 +99,7 @@ void show_sequence(char* sequence, char counter, char index){
 //TODO
 char proposition_led(){
 	uint16_t temps = 0;
+	/* TODO
 	while(BP enfoncé)
 		temps += 100;		
 	if(temps >= 3000)
@@ -97,7 +108,8 @@ char proposition_led(){
 		return ...
 	if(temps >= 1000)
 		return ...
-	return ...
+	*/
+	return temps;
 }
 
 void recuperation_proposition(char* proposition, char counter, char index){
@@ -122,20 +134,19 @@ char verif(char* sequence, char counter, char index, char* proposition){
 }
 
 void victoire(){
-	//TODO
+	/* TODO
 	faire clignoter pendant 2 secondes toutes les LEDs
 		musique victoire avec buzzer
+	*/
 }
 
 void traitant_interruption(){
 	temps_total += 0.3;
 }
 
+
 int main(){
-	init_systick();
-	init_button();
-	init_LEDs();
-	init_buzzer();
+	initialisation();
 	char sequence[32];                         	// 1 char = 1 octet = 8 bits = 4 tours
 	char counter;                               	// 0 <= counter <= 31
 	char index;                                    	// 0 <= index <= 3
@@ -143,6 +154,7 @@ int main(){
 	char erreur = 0;                             	// 0 : pas d'erreur et 1 : erreur détectée
 	char proposition[32];                    	// séquence proposé par le joueur
 	while(1){
+		/* TODO
 		while(!debut_partie){               	// attente du début de partie
 			if(BP enfoncé)
 				debut_partie = 1;
@@ -153,17 +165,18 @@ int main(){
 			counter = 0;
 			index = 0;
 		}
+		*/
 
-		generate_sequence(sequence, counter, index);             	// génération aléatoire de la séquence
-		show_sequence(sequence, counter, index);                   	// éclaire les LEDs décrivant la séquence
-		recuperation_proposition(proposition, counter, index);          // séquence proposée par le joueur
-		erreur = verif(sequence, counter, index, proposition);    	// vérification de la séquence du joueur
+		generate_sequence(sequence, counter, index); // génération aléatoire de la séquence
+		show_sequence(sequence, counter, index); // éclaire les LEDs décrivant la séquence
+		recuperation_proposition(proposition, counter, index); // séquence proposée par le joueur
+		erreur = verif(sequence, counter, index, proposition); // vérification de la séquence du joueur
 
-		if(erreur == 1){                				// le joueur s'est trompé
+		if(erreur == 1){	// le joueur s'est trompé
 			debut_partie = 0;
 			counter = 0;
 			index = 0;
-		} else {                                			// le joueur a remporté le tour
+		} else {		// le joueur a remporté le tour
 			index++;
 			if(index == 4){
 				index = 0;
