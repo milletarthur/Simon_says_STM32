@@ -17,6 +17,10 @@ void LED_on(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->ODR |= 0x1 << port;
 }
 
+void LED_off(volatile struct GPIO_registers* GPIOX, uint32_t port) {
+	GPIOX->ODR &= ~(0x1 << port);
+}
+
 void init_buzzer() {
 	//TODO
 }

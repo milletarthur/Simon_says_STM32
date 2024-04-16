@@ -8,13 +8,17 @@ void init_button() {
 }
 
 void init_LED(volatile struct GPIO_registers* GPIOX, uint32_t port) {
-	GPIOX->MODER = (GPIOX->MODER & (~(0x3 << 2*port))) | (0x1 << 2*port);
+	GPIOX->MODER = (GPIOX->MODER & (~(0x3 << (2*port)))) | (0x1 << (2*port));
 	GPIOX->OTYPER &= ~(0x1 << port);
-	GPIOX->OSPEEDR |= 0x3 << 2*port;
+	GPIOX->OSPEEDR |= 0x3 << (2*port);
 }
 
 void LED_on(volatile struct GPIO_registers* GPIOX, uint32_t port) {
-	GPIOX->ODR |= 0x1 << port;
+	GPIOX->ODR |= (0x1 << port);
+}
+
+void LED_off(volatile struct GPIO_registers* GPIOX, uint32_t port) {
+	GPIOX->ODR &= ~(0x1 << port);
 }
 
 void init_buzzer() {
@@ -29,9 +33,9 @@ void initialisation() {
 	init_button();
 
 	// LED red = PA0
-	init_LED(&GPIOA,0);
+	init_LED(&GPIOA,4);
 	// LED yellow = PA1
-	init_LED(&GPIOA,1);
+	init_LED(&GPIOA,5);
 	// LED green = PB10
 	init_LED(&GPIOB,10);
 	// LED blue = PC7
@@ -42,9 +46,11 @@ void initialisation() {
 
 int main() {
 	initialisation();
-	LED_on(&GPIOA,0);
-	LED_on(&GPIOA,1);
-	LED_on(&GPIOB,10);
-	LED_on(&GPIOC,7);
+	LED_off(&GPIOA,4);
+	LED_on(&GPIOA,5);
+	//LED_on(&GPIOB,10);
+	//LED_on(&GPIOC,7);
+	//GPIOA.ODR = 0;
+	while(1) ;
 	return 0;
 }
