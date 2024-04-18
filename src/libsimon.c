@@ -1,6 +1,12 @@
 #include "sys/devices.h"
-void init_systick() {
-	//TODO
+#include <stdint.h>
+#include "sys/clock.h"
+
+void init_systick(uint32_t freq) {
+	uint32_t p = get_SYSCLK()/freq;
+	SysTick.LOAD = (p-1) & 0x00FFFFFF;
+	SysTick.VAL = 0;
+	SysTick.CTRL |= 7;
 }
 
 void init_input(volatile struct GPIO_registers* GPIOX, uint32_t port) {
@@ -22,18 +28,18 @@ void LED_off(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->ODR &= ~(0x1 << port);
 }
 
-void initialisation() {
+void initialisation(uint32_t freq) {
 	enable_GPIOA();
 	enable_GPIOB();
 	enable_GPIOC();
-	init_systick();
+	init_systick(freq);
 
 	/****** OUTPUT ******/
 
 	// LED red = PA0
-	init_output(&GPIOA,4);
+	init_output(&GPIOA,0);
 	// LED yellow = PA1
-	init_output(&GPIOA,5);
+	init_output(&GPIOA,1);
 	// LED green = PB10
 	init_output(&GPIOB,10);
 	// LED blue = PC7
@@ -48,15 +54,4 @@ void initialisation() {
 	init_input(&GPIOB, 8);
 	// Potentiomètre
 	init_input(&GPIOB, 0);
-}
-
-int main() {
-	initialisation();
-	LED_off(&GPIOA,4);
-	LED_on(&GPIOA,5);
-	//LED_on(&GPIOB,10);
-	//LED_on(&GPIOC,7);
-	//GPIOA.ODR = 0;
-	while(1) ;
-	return 0;
 }

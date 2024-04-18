@@ -1,17 +1,10 @@
 #include "sys/devices.h"
 #include "sys/init.h"
-#include "sys/clock.h"
 #include "sys/cm4.h"
 #include <stdint.h>
+#include "libsimon.c"
 
 static volatile uint32_t temps_total = 0;
-
-void systick_init(uint32_t freq) {
-	uint32_t p = get_SYSCLK()/freq;
-	SysTick.LOAD = (p-1) & 0x00FFFFFF;
-	SysTick.VAL = 0;
-	SysTick.CTRL |= 7;
-}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -20,54 +13,54 @@ void SysTick_Handler(){
 }
 #pragma GCC diagnostic pop
 
-void init_button() {
-	//TODO
+void init_USART() {
+	GPIOA.MODER = (GPIOA.MODER & 0xFFFFFF0F) | 0xA0;
+	GPIOA.AFRL = (GPIOA.AFRL & 0xFFFF00FF) | 0x7700;
+	USART2.BRR = get_APB1CLK()/9600;
+	USART2.CR3 = 0;
+	USART2.CR2 = 0;
 }
 
-void init_LED(volatile struct GPIO_registers* GPIOX, uint32_t port) {
-	GPIOX->MODER = (GPIOX->MODER & (~(0x3 << 2*port))) | (0x1 << 2*port);
-	GPIOX->OTYPER &= ~(0x1 << port);
-	GPIOX->OSPEEDR |= 0x3 << 2*port;
+void _putc(const char c) {
+	while ((USART2.SR & 0x80) == 0) ;
+	USART2.DR = c;
 }
 
-void LED_on(volatile struct GPIO_registers* GPIOX, uint32_t port) {
-	GPIOX->ODR |= 0x1 << port;
-}
-
-void LED_off(volatile struct GPIO_registers* GPIOX, uint32_t port) {
-	GPIOX->ODR &= ~(0x1 << port);
-}
-
-void init_buzzer() {
-	//TODO
-}
-
-void initialisation() {
-	enable_GPIOA();
-	enable_GPIOB();
-	enable_GPIOC();
-	init_button();
-
-	systick_init(300);
-
-	// LED red = PA0
-	init_LED(&GPIOA,0);
-	// LED yellow = PA1
-	init_LED(&GPIOA,1);
-	// LED green = PB10
-	init_LED(&GPIOB,10);
-	// LED blue = PC7
-	init_LED(&GPIOC,7);
-
-	init_buzzer();
+void tempo_500ms() {
+	volatile uint32_t duree;
+	for(duree = 0; duree < 5600000 ; duree++) {
+		;
+	}
 }
 
 int main() {
-	initialisation();
-	systick_init(300);
+	initialisation(300);
 	LED_on(&GPIOA,0);
 	LED_on(&GPIOA,1);
 	LED_on(&GPIOB,10);
 	LED_on(&GPIOC,7);
+
+	while (1) {
+		//uint16_t pot = GPIOB.IDR;
+		//if (pot < 100) {
+		//	_putc('1');
+		//}
+		//else if (pot < 6000) {
+		//	_putc('2');
+		//}
+		//else if(pot < 30000) {
+		//	_putc('3');
+		//}
+		//else if (pot <= 65535) {
+		//	_putc('4');
+		//}
+		LED_on(&GPIOB, 9);
+		tempo_500ms();
+		tempo_500ms();
+		LED_off(&GPIOB, 9);
+		tempo_500ms();
+		tempo_500ms();
+	}
+
 	return 0;
 }
