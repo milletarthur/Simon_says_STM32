@@ -3,11 +3,12 @@ void init_systick() {
 	//TODO
 }
 
-void init_button() {
-	//TODO
+void init_input(volatile struct GPIO_registers* GPIOX, uint32_t port) {
+	GPIOX->MODER &= ~(0x3 << 2*port);
+	GPIOX->PUPDR &= ~(0x3 << 2*port);
 }
 
-void init_LED(volatile struct GPIO_registers* GPIOX, uint32_t port) {
+void init_output(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->MODER = (GPIOX->MODER & (~(0x3 << (2*port)))) | (0x1 << (2*port));
 	GPIOX->OTYPER &= ~(0x1 << port);
 	GPIOX->OSPEEDR |= 0x3 << (2*port);
@@ -21,27 +22,32 @@ void LED_off(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->ODR &= ~(0x1 << port);
 }
 
-void init_buzzer() {
-	//TODO
-}
-
 void initialisation() {
 	enable_GPIOA();
 	enable_GPIOB();
 	enable_GPIOC();
 	init_systick();
-	init_button();
+
+	/****** OUTPUT ******/
 
 	// LED red = PA0
-	init_LED(&GPIOA,4);
+	init_output(&GPIOA,4);
 	// LED yellow = PA1
-	init_LED(&GPIOA,5);
+	init_output(&GPIOA,5);
 	// LED green = PB10
-	init_LED(&GPIOB,10);
+	init_output(&GPIOB,10);
 	// LED blue = PC7
-	init_LED(&GPIOC,7);
+	init_output(&GPIOC,7);
 
-	init_buzzer();
+	//Buzzer
+	init_output(&GPIOB, 9);
+
+	/****** INPUT ********/
+
+	// Bouton poussoir
+	init_input(&GPIOB, 8);
+	// Potentiomètre
+	init_input(&GPIOB, 0);
 }
 
 int main() {
