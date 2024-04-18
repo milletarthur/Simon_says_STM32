@@ -35,10 +35,16 @@ void tempo_500ms() {
 
 int main() {
 	initialisation(300);
-	LED_on(&GPIOA,0);
-	LED_on(&GPIOA,1);
-	LED_on(&GPIOB,10);
-	LED_on(&GPIOC,7);
+	LED_off(&GPIOA,0);
+	LED_off(&GPIOA,1);
+	LED_off(&GPIOB,10);
+	LED_off(&GPIOC,7);
+
+	uint16_t size = 0;
+
+	for (uint16_t i = 0; i<=size; i++) {
+		
+	}
 
 	while (1) {
 		//uint16_t pot = GPIOB.IDR;
