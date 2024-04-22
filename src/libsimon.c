@@ -20,6 +20,19 @@ void init_output(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->OSPEEDR |= 0x3 << (2*port);
 }
 
+void init_potentiometre(){
+	RCC.AHB1ENR |= (1<<1);
+	RCC.APB2ENR |= (1<<8);
+	GPIOB.MODER |= (3<<0);
+
+	ADC1.CR2 |= (1<<0);
+	ADC1.CR1 &= ~(3<<24);
+	ADC1.SMPR2 |= (7<<24);
+	ADC1.SQR1 = 0;
+	ADC2.SQR2 = 0;
+	ADC1.SQR3 = (8<<0);
+}
+
 void LED_on(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->ODR |= (0x1 << port);
 }
@@ -53,5 +66,5 @@ void initialisation(uint32_t freq) {
 	// Bouton poussoir
 	init_input(&GPIOB, 8);
 	// Potentiomètre
-	init_input(&GPIOB, 0);
+	init_potentiometre();	
 }
