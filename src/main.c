@@ -41,10 +41,6 @@ uint32_t mesure_potentiometre(){
 
 int main() {
 	initialisation(300);
-	//LED_on(&GPIOA,0);
-	//LED_on(&GPIOA,1);
-	//LED_on(&GPIOB,10);
-	//LED_on(&GPIOC,7);
 	uint32_t pot = 0;
 
 	while (1) {
