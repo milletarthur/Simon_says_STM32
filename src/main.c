@@ -148,78 +148,79 @@ char verif(char* sequence, uint8_t counter, char* proposition){
 	return 0;
 }
 
+char proposition_led(){
+	char pot;
+	char led;
+	while(BP pas enfoncé){
+		pot = mesure_potentiometre();
+		if (pot < 1024) {
+			LED_on(&GPIOA,0);
+			led = 0;
+			// _putc('0');
+		}
+		else if (pot < 2048) {
+			LED_on(&GPIOA,1);
+			led = 1;
+			// _putc('1');
+		}
+		else if(pot < 3072) {
+			LED_on(&GPIOB,10);
+			led = 2;
+			// _putc('2');
+		}
+		else if (pot <= 4096) {
+			LED_on(&GPIOC,7);
+			led = 3;
+			// _putc('3');
+		}
+	}
+	return led;
+}
+
+void recup_proposition(char* proposition, uint8_t counter){
+	for(uint8_t i=0; i<counter; i++){
+		proposition[i] = proposition_led();
+	}
+}
+
 int main() {
 	initialisation(300);
-	uint32_t pot = mesure_potentiometre();
 	char debut = 0;
-	char sequence[3];
-	char proposition[3];
+	char erreur;
+	char sequence[100];
+	char proposition[100];
 	uint8_t counter = 0;
-	char index = 0;
+	// char index = 0;
 
-	// for(index=0; index<3; index++){
-	// 	generate_sequence(sequence, counter, index);
-	// }
-	
-	// show_sequence(sequence, counter, index);
+	while (1) {
+		// en attente du début de partie
+		while(!debut){
+			if(BP enfoncé){
+				debut = 1;
+			}
+		}
+		// victoire du joueur, il a complété tous les niveaux
+		if(counter == 1){
+			victoire();
+			debut = 0;
+			counter = 0;
+		}
 
-	sequence[0] = 0xEC;
-	sequence[1] = 0x98;
-	sequence[2] = 0x54;
-	
-	for(int i=0; i<3; i++){
-		proposition[i] = sequence[i];
+		generate_sequence(sequence,counter);
+		show_sequence(sequence, counter);
+		recup_proposition(proposition,counter);
+		erreur = verif(sequence, counter, proposition);
+
+		// le joueur s'est trompé dans sa proposition, la partie s'arrête
+		if(erreur){
+			debut = 0;
+			counter = 0;
+		// le joueur a mémorisé la bonne proposition, on passe donc au tour suivant
+		} else {
+			counter++;
+		}
+
 	}
-
-	char c = verif(sequence, 2, 1, proposition);
-	if(c == 0)
-		_putc('0');
-	else
-		_putc('1');
-
-	// while (1) {
-
-
-		/*---------------ALEATOIRE-------------*/
-		// generate_sequence();	// pour un rendu plus rapide modifier le tempo 500 ms
-		// tempo_500ms();
-
-		// LED_off(&GPIOA,0);
-		// LED_off(&GPIOA,1);
-		// LED_off(&GPIOB,10);
-		// LED_off(&GPIOC,7);
-
-		/*---------------LECTURE SEQUENCE-------------*/
-
-		// show_sequence(sequence, 3, 3);
-
-		/*---------------POTENTIOMETRE-------------*/
-
-		// pot = mesure_potentiometre();
-		
-		// if (pot < 1024) {
-		// 	LED_on(&GPIOA,0);
-		// }
-		// else if (pot < 2048) {
-		// 	LED_on(&GPIOA,1);
-		// 	_putc('2');
-		// }
-		// else if(pot < 3072) {
-		// 	LED_on(&GPIOB,10);
-		// 	_putc('3');
-		// }
-		// else if (pot <= 4096) {
-		// 	LED_on(&GPIOC,7);
-		// 	_putc('4');
-		// }
-		// LED_on(&GPIOB, 9);
-		// tempo_500ms();
-		// tempo_500ms();
-		// LED_off(&GPIOB, 9);
-		// tempo_500ms();
-		// tempo_500ms();
-
-	// }
 
 	return 0;
 }
