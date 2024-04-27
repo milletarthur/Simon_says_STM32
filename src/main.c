@@ -28,47 +28,30 @@ void _putc(char c) {
 	USART2.DR = c;
 }
 
-void tempo_100ms() {
-	volatile uint32_t duree;
-	for(duree = 0; duree < 1120000 ; duree++) {
-		;
-	}
-}
-
-void tempo_250ms() {
-	volatile uint32_t duree;
-	for(duree = 0; duree < 2800000 ; duree++) {
-		;
-	}
-}
-
-void tempo_500ms() {
-	volatile uint32_t duree;
-	for(duree = 0; duree < 5600000 ; duree++) {
-		;
-	}
-}
-
 uint32_t mesure_potentiometre(){
 	ADC1.CR2 |= (1<<30);
 	while( !(ADC1.SR&(1<<1)) );
 	return ADC1.DR;
 }
 
-void generate_sequence(){
+void generate_sequence(char* sequence, uint8_t counter, char index){
     char rand = (temps_total / 100) % 4;
-    switch (rand){
+    switch (index){
         case 0:
-            LED_on(&GPIOA,0);
+            // LED_on(&GPIOA,0);
+			sequence[counter] = rand;
 			break;
         case 1:
-			LED_on(&GPIOA,1);
+			// LED_on(&GPIOA,1);
+			sequence[counter] |= (rand & 0x3) << 2;
 			break;
         case 2:
-            LED_on(&GPIOB,10);
+			// LED_on(&GPIOB,10);
+            sequence[counter] |= (rand & 0x3) << 4;
 			break;
         case 3:
-            LED_on(&GPIOC,7);
+			// LED_on(&GPIOC,7);
+            sequence[counter] |= (rand & 0x3) << 6;
 			break;
         default:
 			break;
@@ -110,30 +93,59 @@ void allumer_led(char led){
 	}
 }
 
-void show_sequence(char* sequence, char counter, char index){
+void show_sequence(char* sequence, uint8_t counter, char index){
     char led;
 	char tmp;
+	char c1, c2, c3;
     uint8_t i;
     for(i=0; i<counter; i++){
-        tmp = sequence[i];
-		led = (tmp >> 6) & 0x3;
-		allumer_led(led);
-		led = (tmp >> 4) & 0x3;
-		allumer_led(led);
-		led = (tmp >> 2) & 0x3;
-		allumer_led(led);
-		led = tmp & 0x3;
-		allumer_led(led);
+		if(i == counter-1){
+			c1 = (sequence[i] >> 0x6) & 0x3;
+			c2 = (sequence[i] >> 0x4) & 0x3;
+			c3 = (sequence[i] >> 0x2) & 0x3;
+			if(index == 1)
+				allumer_led(c1);
+			if(index == 2){
+				allumer_led(c1);
+				allumer_led(c2);
+			}
+			if(index == 3){
+				allumer_led(c1);
+				allumer_led(c2);
+				allumer_led(c3);
+			}
+			break;
+		}
+			tmp = sequence[i];
+			led = (tmp >> 6) & 0x3;
+			allumer_led(led);
+			led = (tmp >> 4) & 0x3;
+			allumer_led(led);
+			led = (tmp >> 2) & 0x3;
+			allumer_led(led);
+			led = tmp & 0x3;
+			allumer_led(led);
     }
-	if(index >= 1){
-		allumer_led((sequence[i] >> 6) & 0x3);
+	// if(index == 1){
+	// 	allumer_led((sequence[i] >> 6) & 0x3);
+	// }
+	// if(index == 2){
+	// 	allumer_led((sequence[i] >> 6) & 0x3);
+	// 	allumer_led((sequence[i] >> 4) & 0x3);
+	// }
+	// if(index == 3){
+	// 	allumer_led((sequence[i] >> 6) & 0x3);
+	// 	allumer_led((sequence[i] >> 4) & 0x3);
+	// 	allumer_led((sequence[i] >> 2) & 0x3);
+	// }
+}
+
+char verif(char* sequence, uint8_t counter, char* proposition){
+	for(uint8_t i=0; i<counter; i++){
+		if(sequence[i] != proposition[i])
+			return 1;
 	}
-	if(index >= 2){
-		allumer_led((sequence[i] >> 4) & 0x3);
-	}
-	if(index >= 3){
-		allumer_led((sequence[i] >> 2) & 0x3);
-	}
+	return 0;
 }
 
 int main() {
@@ -141,12 +153,32 @@ int main() {
 	uint32_t pot = mesure_potentiometre();
 	char debut = 0;
 	char sequence[3];
+	char proposition[3];
+	uint8_t counter = 0;
+	char index = 0;
+
+	// for(index=0; index<3; index++){
+	// 	generate_sequence(sequence, counter, index);
+	// }
+	
+	// show_sequence(sequence, counter, index);
 
 	sequence[0] = 0xEC;
 	sequence[1] = 0x98;
 	sequence[2] = 0x54;
+	
+	for(int i=0; i<3; i++){
+		proposition[i] = sequence[i];
+	}
 
-	while (1) {
+	char c = verif(sequence, 2, 1, proposition);
+	if(c == 0)
+		_putc('0');
+	else
+		_putc('1');
+
+	// while (1) {
+
 
 		/*---------------ALEATOIRE-------------*/
 		// generate_sequence();	// pour un rendu plus rapide modifier le tempo 500 ms
@@ -159,7 +191,7 @@ int main() {
 
 		/*---------------LECTURE SEQUENCE-------------*/
 
-		show_sequence(sequence, 2, 3);
+		// show_sequence(sequence, 3, 3);
 
 		/*---------------POTENTIOMETRE-------------*/
 
@@ -187,7 +219,7 @@ int main() {
 		// tempo_500ms();
 		// tempo_500ms();
 
-	}
+	// }
 
 	return 0;
 }

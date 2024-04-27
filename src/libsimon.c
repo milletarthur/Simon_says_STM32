@@ -2,6 +2,27 @@
 #include <stdint.h>
 #include "sys/clock.h"
 
+void tempo_100ms() {
+	volatile uint32_t duree;
+	for(duree = 0; duree < 1120000 ; duree++) {
+		;
+	}
+}
+
+void tempo_250ms() {
+	volatile uint32_t duree;
+	for(duree = 0; duree < 2800000 ; duree++) {
+		;
+	}
+}
+
+void tempo_500ms() {
+	volatile uint32_t duree;
+	for(duree = 0; duree < 5600000 ; duree++) {
+		;
+	}
+}
+
 void init_systick(uint32_t freq) {
 	uint32_t p = get_SYSCLK()/freq;
 	SysTick.LOAD = (p-1) & 0x00FFFFFF;
@@ -67,4 +88,19 @@ void initialisation(uint32_t freq) {
 	init_input(&GPIOB, 8);
 	// Potentiomètre
 	init_potentiometre();	
+}
+
+void victoire(){
+	for(uint8_t i=0; i<5; i++){
+		LED_on(&GPIOA,0);
+		LED_on(&GPIOA,1);
+		LED_on(&GPIOB,10);
+		LED_on(&GPIOC,7);
+		tempo_500ms();
+		LED_off(&GPIOA,0);
+		LED_off(&GPIOA,1);
+		LED_off(&GPIOB,10);
+		LED_off(&GPIOC,7);
+		tempo_500ms();
+	}
 }
