@@ -87,9 +87,6 @@ void initialisation(uint32_t freq) {
 	// LED blue = PC7
 	init_output(&GPIOC,7);
 
-	//Buzzer
-	//init_output(&GPIOB, 9);
-
 	/****** INPUT ********/
 
 	// Bouton poussoir
