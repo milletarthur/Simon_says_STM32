@@ -1,6 +1,7 @@
+#include <string.h>
+#include <stdlib.h>
 #include "sys/devices.h"
 #include "sys/init.h"
-#include "sys/cm4.h"
 #include <stdint.h>
 #include <string.h>
 #include "libsimon.c"
@@ -22,7 +23,7 @@ void _putc(char c) {
 }
 
 void _puts(char *c){
-	int len = strlen(c);
+	uint8_t len = strlen(c);
 	for (int i=0;i<len;i++){
 		_putc(c[i]);
 	}
@@ -31,6 +32,20 @@ void _puts(char *c){
 char _getc(){
 	while( (USART2.SR & (0x1 << 5)) == 0);
 	return USART2.DR;
+}
+
+void _gets(char* dst) {
+	uint8_t len = strlen(dst);
+	if (len <= 0) return;
+	uint8_t i = 0;
+	char c;
+	do {
+		c = _getc();
+		dst[i]= c;
+		i++;
+	} while (i < len || c != '\r');
+	if (i >= len) dst[len-1] = '\0';
+	else dst[i] = '\0';
 }
 
 uint32_t mesure_potentiometre(){
@@ -140,7 +155,13 @@ void recup_proposition(char* proposition, uint8_t counter){
 	}
 }
 
-/*
+uint32_t difficulte() {
+	_puts("Choisissez la difficulté de la partie (nombre entier positif) :\r\n");
+	char diff[5];
+	_gets(diff);
+	return strtol(diff,NULL,0);
+}
+
 int main() {
 	initialisation(300);
 	uint16_t len = 5;
