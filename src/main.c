@@ -15,17 +15,21 @@ void SysTick_Handler(){
 }
 #pragma GCC diagnostic pop
 
-void init_USART() {
-	GPIOA.MODER = (GPIOA.MODER & 0xFFFFFF0F) | 0xA0;
-	GPIOA.AFRL = (GPIOA.AFRL & 0xFFFF00FF) | 0x7700;
-	USART2.BRR = get_APB1CLK()/9600;
-	USART2.CR3 = 0;
-	USART2.CR2 = 0;
-}
-
 void _putc(char c) {
 	while ((USART2.SR & 0x80) == 0) ;
 	USART2.DR = c;
+}
+
+void _puts(const char *c){
+	int len = strlen(c);
+	for (int i=0;i<len;i++){
+		_putc(c[i]);
+	}
+}
+
+char _getc(){
+	while( (USART2.SR & (0x1 << 5)) == 0);
+	return USART2.DR;
 }
 
 uint32_t mesure_potentiometre(){
