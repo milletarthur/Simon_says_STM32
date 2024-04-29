@@ -44,7 +44,7 @@ void _gets(char* dst) {
 		_putc(c);
 		dst[i]= c;
 		i++;
-	} while (i < len || c != '\r');
+	} while (i < len && c != '\r');
 	_putc('\n');
 	if (i >= len) dst[len-1] = '\0';
 	else dst[i] = '\0';
