@@ -59,28 +59,24 @@ uint32_t mesure_potentiometre(){
 void allumer_led(char led){
     switch (led){
         case 0:
-			_putc('0');
             LED_on(&GPIOA,0);
             tempo_500ms();
 			tempo_500ms();
 			LED_off(&GPIOA,0);
 			break;
         case 1:
-			_putc('1');
             LED_on(&GPIOA,1);
             tempo_500ms();
 			tempo_500ms();
 			LED_off(&GPIOA,1);
 			break;
         case 2:
-			_putc('2');
             LED_on(&GPIOB,10);
             tempo_500ms();
 			tempo_500ms();
 			LED_off(&GPIOB,10);
 			break;
         case 3:
-			_putc('3');
             LED_on(&GPIOC,7);
             tempo_500ms();
 			tempo_500ms();
@@ -109,52 +105,6 @@ char verif(char* sequence, uint8_t counter, char* proposition){
 void generate_sequence(char* sequence, uint8_t counter){
     char rand = (temps_total / 100) % 4;
     sequence[counter] = rand;
-	allumer_led(rand);
-	LED_off(&GPIOA,0);
-	LED_off(&GPIOA,1);
-	LED_off(&GPIOB,10);
-	LED_off(&GPIOC,7);
-}
-
-char proposition_led(){
-	char pot;
-	char led = 0;
-	while ((GPIOB.IDR & (0x1 << 8)) != 0){
-		pot = mesure_potentiometre();
-		// LED_off(&GPIOA,0);
-		// LED_off(&GPIOA,1);
-		// LED_off(&GPIOB,10);
-		// LED_off(&GPIOC,7);
-		if (pot < 1024) {
-			LED_on(&GPIOA,0);
-			led = 0;
-			_putc('A');
-		}
-		else if (pot < 2048) {
-			LED_on(&GPIOA,1);
-			led = 1;
-			_putc('B');
-		}
-		else if(pot < 3072) {
-			LED_on(&GPIOB,10);
-			led = 2;
-			_putc('C');
-		}
-		else if (pot <= 4096) {
-			LED_on(&GPIOC,7);
-			led = 3;
-			_putc('D');
-		}
-		tempo_250ms();
-	}
-	return led;
-}
-
-void recup_proposition(char* proposition, uint8_t counter){
-	for(uint8_t i=0; i<=counter; i++){
-		proposition[i] = proposition_led();
-		tempo_100ms();
-	}
 }
 
 uint8_t difficulte() {
@@ -166,32 +116,22 @@ uint8_t difficulte() {
 
 int main() {
 	initialisation(300);
-	uint8_t len = difficulte();
-	char debut = 0;
-	char erreur;
-	char sequence[len];
-	char proposition[len];
-	uint8_t counter = 1;
-	uint16_t pot;
-	char led = -1;
-	uint8_t j=0;
-
 	while (1) {
+		uint8_t len = difficulte();
+		char debut = 0;
+		char erreur = 0;
+		char sequence[len];
+		char proposition[len];
+		uint8_t counter = 1;
+		uint16_t pot;
+		char led = -1;
+		uint8_t j=0;
 
 		// initialisation des tableaux de char
 		for(uint8_t i = 0; i<len; i++){
 			sequence[i] = -1;
 			proposition[i] = -1;
 		}
-		
-		sequence[0] = 0;
-		sequence[1] = 1;
-		sequence[2] = 2;
-		sequence[3] = 3;
-		sequence[4] = 0;
-		sequence[5] = 1;
-		sequence[6] = 2;
-		sequence[7] = 3;
 
 		// en attente du début de partie
 		while(!debut){
@@ -236,6 +176,7 @@ int main() {
 			LED_off(&GPIOA,1);
 			LED_off(&GPIOB,10);
 			LED_off(&GPIOC,7);
+			generate_sequence(sequence, counter-1);
 			show_sequence(sequence, counter);
 			j=0;
 
@@ -264,37 +205,25 @@ int main() {
 						led = 3;
 					}
 				}
-				switch(led){
-					case 0:
-						_putc('0');
-						break;
-					case 1:
-						_putc('1');
-						break;
-					case 2:
-						_putc('2');
-						break;
-					case 3:
-						_putc('3');
-						break;
-					default:
-						break;
-				}
 				proposition[j] = led;
 				tempo_250ms();
 				j++;
 			}
 			erreur = verif(sequence, counter-1, proposition);
 			if(erreur){
-				_puts("\r\n\raté !\r\n");
+				_puts("\r\n Dommage vous avez perdu !\r\n");
 				debut = 0;
+				break;
 			} else {
 				counter++;
-				_puts("\r\n");
 			}
+		}
+		if(erreur){
+			continue;
 		}
 		tempo_500ms();
 		victoire();
+		_puts("\r\n Bravo avez gagné !\r\n");
 		debut = 0;
 	}
 
