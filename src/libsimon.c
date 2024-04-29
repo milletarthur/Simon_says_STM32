@@ -54,6 +54,14 @@ void init_potentiometre(){
 	ADC1.SQR3 = (8<<0);
 }
 
+void init_USART() {
+	GPIOA.MODER = (GPIOA.MODER & 0xFFFFFF0F) | 0xA0;
+	GPIOA.AFRL = (GPIOA.AFRL & 0xFFFF00FF) | 0x7700;
+	USART2.BRR = get_APB1CLK()/9600;
+	USART2.CR3 = 0;
+	USART2.CR2 = 0;
+}
+
 void LED_on(volatile struct GPIO_registers* GPIOX, uint32_t port) {
 	GPIOX->ODR |= (0x1 << port);
 }
@@ -80,7 +88,7 @@ void initialisation(uint32_t freq) {
 	init_output(&GPIOC,7);
 
 	//Buzzer
-	init_output(&GPIOB, 9);
+	//init_output(&GPIOB, 9);
 
 	/****** INPUT ********/
 
@@ -88,6 +96,8 @@ void initialisation(uint32_t freq) {
 	init_input(&GPIOB, 8);
 	// Potentiomètre
 	init_potentiometre();	
+	// Ligne série USART
+	init_USART();
 }
 
 void victoire(){
