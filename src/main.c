@@ -43,7 +43,7 @@ void _gets(char* dst) {
 		c = _getc();
 		dst[i]= c;
 		i++;
-	} while (i < len || c != '\r');
+	} while (i < len && c != '\r');
 	if (i >= len) dst[len-1] = '\0';
 	else dst[i] = '\0';
 }
@@ -157,7 +157,7 @@ void recup_proposition(char* proposition, uint8_t counter){
 
 uint32_t difficulte() {
 	_puts("Choisissez la difficulté de la partie (nombre entier positif) :\r\n");
-	char diff[5];
+	char diff[4];
 	_gets(diff);
 	return strtol(diff,NULL,0);
 }
