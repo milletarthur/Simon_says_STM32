@@ -21,10 +21,10 @@ void init_LD2(){
 	GPIOA.PUPDR &= 0xFFFFF3FF;
 }
 
-void tempo_2s(){
+void tempo_500ms(){
 	volatile uint32_t duree;
 	/* estimation, suppose que le compilateur n'optimise pas trop... */
-	for (duree = 0; duree < 4*5600000 ; duree++){
+	for (duree = 0; duree < 5600000 ; duree++){
 		;
 	}
 }
@@ -40,12 +40,6 @@ void systick_init(uint32_t freq){
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 void __attribute__((interrupt)) SysTick_Handler(){
-	/* Le fait de définir cette fonction suffit pour
-	 * qu'elle soit utilisée comme traitant,
-	 * cf les fichiers de compilation et d'édition de lien
-	 * pour plus de détails.
-	 */
-	/* ... */
 	compteur ++;
 	if (compteur >= tempo) {
 		if((GPIOA.IDR & (0x1 << 5)) == 0)
@@ -57,20 +51,25 @@ void __attribute__((interrupt)) SysTick_Handler(){
 }
 #pragma GCC diagnostic pop
 
-/* Programme qui fait clignoter la LED avec une période de 2s
- * quand le bouton est relâché, et l'allume sur l'appui du bouton
+void tempo_2s() {
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+	tempo_500ms();
+}
+
+/* Programme qui fait clignoter la LED toutes les 500ms,
+ * en utilisant les interruptions du Systick
  */
 int main() {
-	init_PB();
 	init_LD2();
+	init_PB();
+	systick_init(1000);
 	while(1) {
-		if((GPIOC.IDR & (0x1 << 13)) == 0)
-			GPIOA.ODR |= (0x1 <<5);
-		else {
-			GPIOA.ODR |= (0x1 <<5);
-			tempo_2s();
-			GPIOA.ODR &= (~(0x1 << 5));
-			tempo_2s();
-		}
+		if ((GPIOC.IDR & (0x1 << 13)) == 0)
+			tempo--;
+		if (tempo <= 0)
+			tempo = 500;
 	}
+	return 0;
 }
