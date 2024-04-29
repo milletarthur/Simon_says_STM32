@@ -32,6 +32,11 @@ puis sélectionner la couleur avec le bouton de la carte fille.
 
 \section{Le rôle des interruptions}
 
+Le rôle des interruptions dans notre projet est assez minime puisque nous ne nous servons que d'un timer.
+En effet, le jeu du Simon affiche une séquence puis attend que le joueur fasse sa séquence : tout peut être géré par la fonction \texttt{main}.
+Pour afficher une séquence, il faut un espacement de temps,
+c'est pourquoi nous avons tout de même besoin d'une interruption qui incrémente la variable globale \texttt{temps\_globale}.
+
 \section{Les principaux schémas algorithmiques}
 
 \section{Description du travail réalisé}
