@@ -13,162 +13,43 @@
 
 \maketitle
 
-\section{Prise en main de la carte}
+\section{Description du projet}
 
-\subsection{Les GPIO}
+Notre projet est le jeu électronique du \textbf{Simon}.
+\\
 
-\begin{itemize}
-	\item Programme qui allume la LED lorsque le bouton est enfoncé :
-		\begin{lstlisting}
-int main() {
-	init_PB();
-	init_LD2();
-	while(1){
-		if((GPIOC.IDR & (0x1 <<13))==0)
-			GPIOA.ODR |= (0x1 << 5);
-		else
-			GPIOA.ODR &= (~(0x1 <<5));
-	}
-	return 0;
-}
-		\end{lstlisting}
-	\item Programme qui fait clignoter la LED toutes les 500ms :
-		\begin{lstlisting}
-int main() {
-	init_PB();
-	init_LD2();
-	while(1){
-		GPIOA.ODR &= (~(0x1 << 5));
-		tempo_500ms();
-		GPIOA.ODR |= (0x1 <<5);
-		tempo_500ms();
-	}
-	return 0;
-}
-		\end{lstlisting}
-	\item Programme qui fait clignoter la LED avec une période de 2s quand le bouton est relâché, et l'allume sur l'appui du bouton :
-		\begin{lstlisting}
-void tempo_2s() {
-	tempo_500ms();
-	tempo_500ms();
-	tempo_500ms();
-	tempo_500ms();
-}
+Simon va éclairer une des quatre couleurs :
+le joueur doit alors appuyer sur la touche de la couleur qui vient de s'allumer.
+Ensuite, le jeu répète la même couleur, puis ajoute au hasard une nouvelle couleur.
+Le joueur doit reproduire cette nouvelle séquence.
+Chaque fois que le joueur reproduit correctement la séquence, le jeu ajoute une nouvelle couleur.
+\\
 
-int main() {
-	init_PB();
-	init_LD2();
-	while(1) {
-		if((GPIOC.IDR & (0x1 << 13)) == 0)
-			GPIOA.ODR |= (0x1 <<5);
-		else {
-			GPIOA.ODR |= (0x1 <<5);
-			tempo_2s();
-			GPIOA.ODR &= (~(0x1 << 5));
-			tempo_2s();
-		}
-	}
-}
-		\end{lstlisting}
-		Lorsqu'on appuie sur le bouton alors que la LED est éteinte, le programme va d'abord attendre que les deux secondes se soient écoulées (fonction \texttt{tempo\_2s}) avant de reboucler et de tester l'état du bouton.
+Pour sélectionner la difficulté, le joueur devra rentrer manuellement dans la ligne série le nombre d'essais (positif et inférieur à 256) lorqu'il y sera invité.
 
-\subsection{Mise en oeuvre de l'USART}
+Le joueur doit utiliser le potentiomètre pour parcourir les couleurs,
+puis sélectionner la couleur avec le bouton de la carte fille.
 
-	\item Programme qui qui réalise l'affichage du caractère entré au clavier :
-		\begin{lstlisting}
-char _getc(){
-	while( (USART2.SR & (0x1 << 5)) == 0);
-	return USART2.DR;
-}
+\section{Le rôle des interruptions}
 
-int main() {
-	while(1) {
-		char c = _getc();
-		if (c =='\r')
-			printf("\r\n");
-		else
-			printf("%c",c);
-	}
-	return 0;
-}
-		\end{lstlisting}
+\section{Les principaux schémas algorithmiques}
 
-	\item Programme qui récupère une chaîne depuis la ligne série et l'affiche deux fois :
-		\begin{lstlisting}
-int main() {
-	char s[256];
-	uint32_t i = 0;
-	while(1) {
-		char c = _getc();
-		s[i] = c;
-		i = (i+1)%256;
-		if (c=='\r'){
-			printf("\r\n");
-			s[i]='\0';
-			i=0;
-			_puts(s);
-		}
-		else
-			printf("%c",c);
-	}
-	return 0;
-}
-		\end{lstlisting}
+\section{Description du travail réalisé}
 
-\end{itemize}
-
-\subsection{Le Systick, l'USART et les interruptions}
+Ce qui a marché :
 
 \begin{itemize}
-	\item Programme qui fait clignoter la LED toutes les 500ms, en utilisant les interruptions du Systick :
-		\begin{lstlisting}
-void __attribute__((interrupt)) SysTick_Handler(){
-	if((GPIOA.IDR & (0x1 << 5)) == 0) // Si la LED est eteinte,
-		GPIOA.ODR |= (0x1 << 5); // On l'allume
-	else
-		GPIOA.ODR &= (~(0x1 <<5)); // On l'eteint
-	tempo_500ms();
-}
-
-int main() {
-        init_LD2();
-	systick_init(1000);
-	while(1) {
-	
-	}
-	return 0;
-}
-		\end{lstlisting}
-
-	\item Programme qui augmente la fréquence de clignotement en appuyant sur le bouton poussoir :
-		\begin{lstlisting}
-static volatile uint32_t tempo = 1000;
-static volatile uint32_t compteur = 0;
-
-void __attribute__((interrupt)) SysTick_Handler(){
-	compteur ++;
-	if (compteur >= tempo) {
-		if((GPIOA.IDR & (0x1 << 5)) == 0)
-			GPIOA.ODR |= (0x1 << 5);
-		else
-			GPIOA.ODR &= (~(0x1 <<5));
-		compteur = 0;
-	}
-}
-
-int main() {
-	init_LD2();
-	init_PB();
-	systick_init(1000);
-	while(1) {
-		if ((GPIOC.IDR & (0x1 << 13)) == 0)
-			tempo--;
-		if (tempo <= 0)
-			tempo = 500;
-	}
-	return 0;
-}
-		\end{lstlisting}
 \end{itemize}
+
+Ce qui n'a pas marché :
+
+\begin{itemize}
+	\item Nous avons voulu rajouter un buzzer pour associer une sonorité à chaque couleur et nous avions réussi,
+		malheureusement la carte \texttt{STM32} ne fournissait pas assez d'intensité pour les LEDs, le buzzer, le potentiomètre et le bouton.
+\end{itemize}
+
+\section{Points importants}
+
+\section{Pour aller plus loin}
 
 \end{document}
