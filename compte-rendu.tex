@@ -1,15 +1,14 @@
 \documentclass[10pt,a4,french]{article}
 \usepackage{enumitem}
-\usepackage{listings}
 \usepackage[margin=3cm]{geometry}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \title{Compte-Rendu TP SPC}
 \author{Arthur MILLET\\ Rémi GAULMIN}
 \date{19 Mars 2024}
 
 \begin{document}
-
-\lstset{language=C, frame=single}
 
 \maketitle
 
@@ -35,19 +34,44 @@ puis sélectionner la couleur avec le bouton de la carte fille.
 Le rôle des interruptions dans notre projet est assez minime puisque nous ne nous servons que d'un timer.
 En effet, le jeu du Simon affiche une séquence puis attend que le joueur fasse sa séquence : tout peut être géré par la fonction \texttt{main}.
 Pour afficher une séquence, il faut un espacement de temps,
-c'est pourquoi nous avons tout de même besoin d'une interruption qui incrémente la variable globale \texttt{temps\_globale}.
+c'est pourquoi nous avons tout de même besoin d'une interruption qui incrémente la variable globale \texttt{temps\_total}.
+Cette variable nous permet également de créer un générateur aléatoire.
 
 \section{Les principaux schémas algorithmiques}
 
-% Je sais pas du tout là si tu peux faire qq chose Arthur...
+Notre programme s'articule donc assez simplement : tout est géré par le \texttt{main}, sauf le timer qui a son traitant d'interruption.
+
+\begin{algorithm}
+\caption{Traitant d'interruption}\label{traitant}
+\begin{algorithmic}[1]
+	\Function{SysTick\_Handler}{}
+		\State $temps\_total \gets temps\_total + 300$
+		\If{$temps\_total \ge 3000$}
+			\State $temps\_total \gets 0$;
+		\EndIf
+	\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Générateur de séquence}\label{gene}
+	\begin{algorithmic}[1]
+		\Function{generate\_sequence}{sequence, counter}
+			\State $rand \gets (temps\_total / 100) \bmod 4$ \Comment{Le traitant sert ici}
+			\State $sequence[counter] \gets rand$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
 
 \section{Description du travail réalisé}
 
 Ce qui a marché :
 
 \begin{itemize}
-	\item L'affichage des 4 LEDs : 
+	\item L'affichage des 4 LEDs : les LEDs qui avaient grillées étaient ce qui nous a fait perdre le plus de temps.
+		Nous n'arrivions pas à savoir si la cause était notre code faux ou justement une défaillance des LEDs.
 	\item L'utilisation du potentiomètre : c'est bien grâce à l'aide de nos enseignants que nous sommes arrivés à comprendre comment récupérer les valeurs en entrée du potentiomètre.
+	\item Utiliser la ligne série pour récupérer la difficulté voulue par le joueur en récupérant un à un les caractères puis en convertissant la chaîne ainsi créée en \texttt{uint8\_t}.
 \end{itemize}
 
 Ce qui n'a pas marché :
@@ -56,10 +80,37 @@ Ce qui n'a pas marché :
 	\item Nous avons voulu rajouter un buzzer pour associer une sonorité à chaque couleur et nous avions réussi,
 		malheureusement la carte \texttt{STM32} ne fournissait pas assez d'intensité pour les LEDs, le buzzer, le potentiomètre et le bouton.
 		Il a donc été décidé d'abandonner le buzzer.
+	\item Mettre en place des optimisations de stockage en mémoire :
+
+		En effet, comme nous travaillons avec des cartes contenant peu de mémoire flash,
+		il est important d'en prendre compte et d'optimiser le stockage en mémoire.
+		Dans notre programme, en dehors des petites variables, nous avons 2 tableaux à stocker,
+		celui de la séquence à mémoriser et celui proposition faite par le joueur.
+		Nous avons 4 LEDs, donc on peut représenter les LEDs avec 2 bits seulement, or en utilisant un tableau de char,
+		comme nous le faisons, on peut stocker jusqu'à 4 couleurs dans 1 char, soit 4 tours.
+		Ainsi on divise par 4 l'espace mémoire occupée par les tableaux.
+		Au début de l'implémentation des fonctions, nous étions parti sur ce principe,
+		mais malheureusement suite à de nombreux bugs et par manque de temps, nous avons dû renoncer à cette optimisation.
 \end{itemize}
 
 \section{Points importants}
 
+\begin{itemize}
+	\item Choisir le bon type de variable est crucial entre \texttt{uint8\_t}, \texttt{uint16\_t} et \texttt{uint32\_t}, car choisir un type trop petit crée des erreurs de segmentation et un type trop grand limite les capacités de la carte à la mémoire petite.
+	\item Les variables globales doivent être \texttt{volatile}, car il est nécessaire que chaque modification soit prise en compte par toutes les fonctions les utilisant.
+	\item Faire le bon choix lorsqu'une interruption est utile ou non :
+
+		Tout ce qui est attendu par le programme n'a pas besoin d'être exécuté par un traitant d'interruption mais par le programme principal.
+		Un traitant sera utile pour toute tâche nécessitant d'interrompre ce même programme principal.
+\end{itemize}
+
 \section{Pour aller plus loin}
+
+Voici quelques pistes d'amélioration de notre jeu :
+
+\begin{itemize}
+	\item Connecter une alimentation extérieur pour pouvoir fournir l'intensité nécessaire pour tous les composants ainsi que le buzzer.
+	\item Utiliser moins la ligne série pour rendre le jeu encore plus portatif.
+\end{itemize}
 
 \end{document}
